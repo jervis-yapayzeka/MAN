@@ -1,0 +1,128 @@
+import { MessageSquare, Cpu, CheckSquare, Settings, Zap } from 'lucide-react';
+import { useJarvis } from '../contexts/JarvisContext';
+
+interface LeftSidebarProps {
+  activeNav: string;
+  onNavChange: (nav: string) => void;
+}
+
+export default function LeftSidebar({ activeNav, onNavChange }: LeftSidebarProps) {
+  const { t, themeColors, isIdle } = useJarvis();
+
+  const NAV_ITEMS = [
+    { id: 'conversation', icon: MessageSquare, labelKey: 'conversation' },
+    { id: 'devices', icon: Cpu, labelKey: 'devices' },
+    { id: 'tasks', icon: CheckSquare, labelKey: 'tasks' },
+    { id: 'settings', icon: Settings, labelKey: 'settings' },
+  ];
+
+  const primaryColor = themeColors.primary;
+  const bgColor = themeColors.bgSecondary;
+  const statusColor = isIdle ? '#666' : '#00ff88';
+
+  return (
+    <div
+      className="flex flex-col items-center py-6 relative"
+      style={{
+        width: 64,
+        borderRight: `1px solid ${primaryColor}15`,
+        background: bgColor,
+        backdropFilter: 'blur(12px)',
+        transition: 'background 0.4s ease, border-color 0.4s ease',
+      }}
+    >
+      {/* Logo */}
+      <div className="mb-8 flex flex-col items-center gap-1">
+        <div
+          className="w-8 h-8 rounded flex items-center justify-center transition-all duration-300"
+          style={{
+            border: `1px solid ${primaryColor}55`,
+            background: `${primaryColor}18`,
+            boxShadow: `0 0 14px ${themeColors.glow}`,
+          }}
+        >
+          <Zap size={14} color={primaryColor} />
+        </div>
+      </div>
+
+      {/* Separator */}
+      <div
+        className="w-6 mb-6"
+        style={{ height: 1, background: `${primaryColor}25`, transition: 'background 0.3s ease' }}
+      />
+
+      {/* Nav items */}
+      <div className="flex flex-col gap-6 flex-1">
+        {NAV_ITEMS.map(({ id, icon: Icon, labelKey }) => {
+          const isActive = activeNav === id;
+          return (
+            <button
+              key={id}
+              onClick={() => onNavChange(id)}
+              className="flex flex-col items-center gap-1 group relative"
+              title={t(labelKey as any)}
+            >
+              {/* Active indicator */}
+              {isActive && (
+                <div
+                  className="absolute -right-[13px] top-1/2 -translate-y-1/2"
+                  style={{
+                    width: 2,
+                    height: 28,
+                    background: `linear-gradient(to bottom, transparent, ${primaryColor}, transparent)`,
+                    borderRadius: 1,
+                  }}
+                />
+              )}
+
+              <div
+                className="w-9 h-9 rounded flex items-center justify-center transition-all duration-300"
+                style={{
+                  background: isActive ? `${primaryColor}18` : 'transparent',
+                  border: isActive ? `1px solid ${primaryColor}45` : '1px solid transparent',
+                  boxShadow: isActive ? `0 0 14px ${themeColors.glow}` : 'none',
+                }}
+              >
+                <Icon
+                  size={15}
+                  color={isActive ? primaryColor : `${primaryColor}55`}
+                  style={{ transition: 'color 0.3s ease' }}
+                />
+              </div>
+              <span
+                className="font-rajdhani text-[9px] tracking-widest uppercase transition-colors duration-300"
+                style={{ color: isActive ? `${primaryColor}DD` : `${primaryColor}45` }}
+              >
+                {t(labelKey as any)}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Bottom separator */}
+      <div
+        className="w-6 mt-6 mb-4"
+        style={{ height: 1, background: `${primaryColor}25`, transition: 'background 0.3s ease' }}
+      />
+
+      {/* Status dot */}
+      <div className="flex flex-col items-center gap-1">
+        <div
+          className="w-2 h-2 rounded-full"
+          style={{
+            background: statusColor,
+            boxShadow: isIdle ? 'none' : `0 0 7px ${statusColor}`,
+            transition: 'all 0.3s ease'
+          }}
+        />
+        <span
+          className="font-rajdhani text-[8px] tracking-widest uppercase"
+          style={{ color: `${statusColor}AA`, transition: 'color 0.3s ease' }}
+        >
+          {t('live')}
+        </span>
+      </div>
+    </div>
+  );
+}

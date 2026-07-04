@@ -1,0 +1,288 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cyan: #00d4ff;
+  --cyan-dim: #0099c0;
+  --navy-deep: #010810;
+  --navy-dark: #020c1a;
+  --navy-mid: #041424;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  background-color: var(--navy-deep);
+  color: #e0faff;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Grid background */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Radial vignette */
+.vignette {
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(1,8,16,0.85) 100%);
+}
+
+/* Orb container */
+.orb-container {
+  position: relative;
+  width: 380px;
+  height: 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Orb outer glow aura */
+.orb-aura {
+  position: absolute;
+  inset: -60px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center,
+    rgba(0,212,255,0.12) 0%,
+    rgba(0,184,224,0.06) 40%,
+    transparent 70%
+  );
+  animation: breathe 4s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.6; transform: scale(0.97); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+/* Orb core sphere */
+.orb-core {
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 35% 35%,
+    rgba(120,240,255,0.35) 0%,
+    rgba(0,212,255,0.25) 25%,
+    rgba(0,153,204,0.3) 55%,
+    rgba(0,60,100,0.9) 100%
+  );
+  box-shadow:
+    0 0 40px rgba(0,212,255,0.6),
+    0 0 80px rgba(0,212,255,0.3),
+    0 0 120px rgba(0,184,224,0.2),
+    inset 0 0 40px rgba(0,212,255,0.15),
+    inset 0 -20px 40px rgba(0,40,80,0.6);
+  animation: pulse-orb-core 3s ease-in-out infinite;
+}
+
+@keyframes pulse-orb-core {
+  0%, 100% { box-shadow: 0 0 40px rgba(0,212,255,0.6), 0 0 80px rgba(0,212,255,0.3), 0 0 120px rgba(0,184,224,0.2), inset 0 0 40px rgba(0,212,255,0.15); }
+  50% { box-shadow: 0 0 60px rgba(0,212,255,0.8), 0 0 120px rgba(0,212,255,0.5), 0 0 200px rgba(0,184,224,0.3), inset 0 0 60px rgba(0,212,255,0.25); }
+}
+
+/* Ring styles */
+.ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(0,212,255,0.25);
+}
+
+.ring-dashed {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px dashed rgba(0,212,255,0.18);
+}
+
+.ring-dotted {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px dotted rgba(0,212,255,0.12);
+}
+
+.ring-glow {
+  box-shadow: 0 0 8px rgba(0,212,255,0.3), inset 0 0 8px rgba(0,212,255,0.1);
+}
+
+/* HUD line decorations */
+.hud-line {
+  position: absolute;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.6), transparent);
+  height: 1px;
+}
+
+/* Scan line effect */
+.scan-line {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.4), transparent);
+  animation: scan-pass 5s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scan-pass {
+  0% { top: 0%; opacity: 0; }
+  5% { opacity: 0.8; }
+  95% { opacity: 0.8; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* Waveform bars */
+.wave-bar {
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(to top, rgba(0,212,255,0.4), rgba(0,212,255,0.9));
+  transform-origin: bottom;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0,212,255,0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0,212,255,0.2);
+  border-radius: 2px;
+}
+
+/* Input glow */
+.input-glow:focus {
+  outline: none;
+  box-shadow: 0 0 0 1px rgba(0,212,255,0.4), 0 0 20px rgba(0,212,255,0.15);
+}
+
+/* Device status dot */
+.status-online {
+  background: #00ff88;
+  box-shadow: 0 0 6px #00ff88, 0 0 12px rgba(0,255,136,0.4);
+}
+
+.status-standby {
+  background: #ffaa00;
+  box-shadow: 0 0 6px #ffaa00, 0 0 12px rgba(255,170,0,0.4);
+}
+
+.status-offline {
+  background: #ff4444;
+  box-shadow: 0 0 6px #ff4444;
+}
+
+/* Glass panel */
+.glass-panel {
+  background: rgba(4, 20, 36, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,212,255,0.1);
+}
+
+/* Shimmer text */
+.shimmer-text {
+  background: linear-gradient(90deg, #00d4ff, #ffffff, #00d4ff);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Particle dot */
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(0,212,255,0.8);
+  box-shadow: 0 0 6px rgba(0,212,255,0.8);
+}
+
+/* Nav item */
+.nav-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-item::after {
+  content: '';
+  position: absolute;
+  right: -12px;
+  width: 2px;
+  height: 0;
+  background: var(--cyan);
+  transition: height 0.3s ease;
+  border-radius: 1px;
+}
+
+.nav-item.active::after {
+  height: 100%;
+}
+
+/* Explicit keyframes needed for inline-style animation references */
+@keyframes spin-reverse {
+  from { transform: rotate(360deg); }
+  to   { transform: rotate(0deg);   }
+}
+
+/* Corner decorations */
+.corner-tl::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 16px; height: 16px;
+  border-top: 1px solid rgba(0,212,255,0.5);
+  border-left: 1px solid rgba(0,212,255,0.5);
+}
+
+.corner-tr::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 16px; height: 16px;
+  border-top: 1px solid rgba(0,212,255,0.5);
+  border-right: 1px solid rgba(0,212,255,0.5);
+}
+
+.corner-br::after {
+  content: '';
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 16px; height: 16px;
+  border-bottom: 1px solid rgba(0,212,255,0.5);
+  border-right: 1px solid rgba(0,212,255,0.5);
+}
+
+.corner-bl::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 16px; height: 16px;
+  border-bottom: 1px solid rgba(0,212,255,0.5);
+  border-left: 1px solid rgba(0,212,255,0.5);
+}

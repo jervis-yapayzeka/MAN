@@ -1,0 +1,552 @@
+import { useState } from 'react';
+import {
+  CheckCircle2, Circle, Clock, Trash2,
+  Plus, Filter, Calendar, Flag
+} from 'lucide-react';
+import { useJarvis } from '../contexts/JarvisContext';
+
+type Priority = 'low' | 'medium' | 'high';
+type TaskStatus = 'pending' | 'in_progress' | 'completed';
+
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+  priority: Priority;
+  status: TaskStatus;
+  dueDate: string;
+  category: string;
+  createdAt: string;
+}
+
+const PRIORITY_CONFIG = {
+  low:    { color: '#00d4ff', labelKey: 'low', dim: 'rgba(0,212,255,0.1)' },
+  medium: { color: '#ffaa00', labelKey: 'medium', dim: 'rgba(255,170,0,0.1)' },
+  high:   { color: '#ff4444', labelKey: 'high', dim: 'rgba(255,68,68,0.1)' },
+};
+
+const STATUS_CONFIG = {
+  pending:     { color: '#ffaa00', labelKey: 'waiting', icon: Circle,   dim: 'rgba(255,170,0,0.1)' },
+  in_progress: { color: '#00d4ff', labelKey: 'inProgress', icon: Clock, dim: 'rgba(0,212,255,0.1)' },
+  completed:   { color: '#00ff88', labelKey: 'completed', icon: CheckCircle2, dim: 'rgba(0,255,136,0.1)' },
+};
+
+const INITIAL_TASKS: Task[] = [
+  {
+    id: '1',
+    title: 'Sistem Güncellemesi',
+    description: 'Tüm bağlı cihazlarda güvenlik yaması uygula',
+    priority: 'high',
+    status: 'in_progress',
+    dueDate: '2026-07-04',
+    category: 'Sistem',
+    createdAt: '2026-07-02',
+  },
+  {
+    id: '2',
+    title: 'Drone Batarya Değişimi',
+    description: 'Drone bataryasını değiştir ve test et',
+    priority: 'medium',
+    status: 'pending',
+    dueDate: '2026-07-05',
+    category: 'Bakım',
+    createdAt: '2026-07-01',
+  },
+  {
+    id: '3',
+    title: 'AR Gözlük Kalibrasyonu',
+    description: 'Jarvis Gözlüğü sensör kalibrasyonu yap',
+    priority: 'low',
+    status: 'pending',
+    dueDate: '2026-07-06',
+    category: 'Bakım',
+    createdAt: '2026-07-03',
+  },
+  {
+    id: '4',
+    title: 'Ağ Güvenlik Taraması',
+    description: 'Tüm ağ bağlantılarını güvenlik açısından tara',
+    priority: 'high',
+    status: 'completed',
+    dueDate: '2026-07-03',
+    category: 'Güvenlik',
+    createdAt: '2026-07-01',
+  },
+];
+
+const CATEGORIES_TR = ['Tümü', 'Sistem', 'Bakım', 'Güvenlik', 'Genel'];
+const CATEGORIES_EN = ['All', 'System', 'Maintenance', 'Security', 'General'];
+
+function TaskCard({ task, onToggle, onDelete, primaryColor, t }: { task: Task; onToggle: () => void; onDelete: () => void; primaryColor: string; t: (key: string) => string }) {
+  const [isHovered, setIsHovered] = useState(false);
+  const pc = PRIORITY_CONFIG[task.priority];
+  const sc = STATUS_CONFIG[task.status];
+  const StatusIcon = sc.icon;
+
+  return (
+    <div
+      className="relative rounded overflow-hidden transition-all duration-300"
+      style={{
+        background: isHovered ? `${primaryColor}08` : 'rgba(4,20,36,0.7)',
+        border: `1px solid ${isHovered ? `${primaryColor}35` : `${primaryColor}15`}`,
+        boxShadow: isHovered ? `0 0 20px ${primaryColor}12` : 'none',
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Priority stripe */}
+      <div
+        className="absolute left-0 top-0 bottom-0"
+        style={{
+          width: 3,
+          background: `linear-gradient(to bottom, transparent, ${pc.color}, transparent)`,
+          boxShadow: `0 0 8px ${pc.color}50`,
+        }}
+      />
+
+      <div className="pl-5 pr-4 py-4">
+        {/* Top row */}
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex items-center gap-3">
+            {/* Status toggle button */}
+            <button
+              onClick={onToggle}
+              className="flex-shrink-0 transition-all duration-200"
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 6,
+                background: sc.dim,
+                border: `1px solid ${sc.color}35`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <StatusIcon size={14} color={sc.color} />
+            </button>
+
+            <div>
+              <p
+                className="font-rajdhani font-semibold leading-none"
+                style={{
+                  fontSize: 14,
+                  color: task.status === 'completed' ? `${primaryColor}55` : 'rgba(224,250,255,0.92)',
+                  textDecoration: task.status === 'completed' ? 'line-through' : 'none',
+                  transition: 'color 0.3s ease',
+                }}
+              >
+                {task.title}
+              </p>
+              <p
+                className="font-rajdhani mt-0.5"
+                style={{ fontSize: 10, color: `${primaryColor}45`, transition: 'color 0.3s ease' }}
+              >
+                {task.category}
+              </p>
+            </div>
+          </div>
+
+          {/* Delete button */}
+          <button
+            onClick={onDelete}
+            className="flex-shrink-0 opacity-0 hover:opacity-100 transition-opacity duration-200"
+            style={{
+              padding: 6,
+              borderRadius: 4,
+              background: 'transparent',
+            }}
+          >
+            <Trash2 size={12} color="rgba(255,68,68,0.5)" />
+          </button>
+        </div>
+
+        {/* Description */}
+        <p
+          className="font-rajdhani mb-3"
+          style={{ fontSize: 11, color: `${primaryColor}45`, lineHeight: 1.5, transition: 'color 0.3s ease' }}
+        >
+          {task.description}
+        </p>
+
+        {/* Bottom row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {/* Priority badge */}
+            <div
+              className="flex items-center gap-1 rounded px-2 py-0.5"
+              style={{ background: pc.dim, border: `1px solid ${pc.color}35` }}
+            >
+              <Flag size={8} color={pc.color} />
+              <span className="font-orbitron" style={{ fontSize: 7, color: pc.color, letterSpacing: '0.1em' }}>
+                {pc.labelKey.toUpperCase()}
+              </span>
+            </div>
+
+            {/* Due date */}
+            <div className="flex items-center gap-1">
+              <Calendar size={9} color={`${primaryColor}55`} />
+              <span className="font-rajdhani" style={{ fontSize: 9, color: `${primaryColor}55`, transition: 'color 0.3s ease' }}>
+                {task.dueDate}
+              </span>
+            </div>
+          </div>
+
+          {/* Status badge */}
+          <div
+            className="flex items-center gap-1.5 rounded-full px-2 py-0.5"
+            style={{ background: sc.dim, border: `1px solid ${sc.color}30` }}
+          >
+            <div
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ background: sc.color, boxShadow: `0 0 5px ${sc.color}` }}
+            />
+            <span className="font-orbitron" style={{ fontSize: 7, color: sc.color, letterSpacing: '0.1em' }}>
+              {t(sc.labelKey as any)}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddTaskModal({ onClose, onAdd, primaryColor, t, lang }: { onClose: () => void; onAdd: (task: Omit<Task, 'id' | 'createdAt'>) => void; primaryColor: string; t: (key: string) => string; lang: 'tr' | 'en' }) {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [priority, setPriority] = useState<Priority>('medium');
+  const [category, setCategory] = useState(lang === 'tr' ? 'Genel' : 'General');
+  const [dueDate, setDueDate] = useState('');
+
+  const categories = lang === 'tr' ? CATEGORIES_TR : CATEGORIES_EN;
+  const newTaskLabel = lang === 'tr' ? 'Yeni Görev' : 'New Task';
+  const titleLabel = lang === 'tr' ? 'Başlık' : 'Title';
+  const titlePlaceholder = lang === 'tr' ? 'Görev başlığı...' : 'Task title...';
+  const descLabel = lang === 'tr' ? 'Açıklama' : 'Description';
+  const descPlaceholder = lang === 'tr' ? 'Görev açıklaması...' : 'Task description...';
+  const priorityLabel = lang === 'tr' ? 'Öncelik' : 'Priority';
+  const categoryLabel = lang === 'tr' ? 'Kategori' : 'Category';
+  const dueDateLabel = lang === 'tr' ? 'Son Tarih' : 'Due Date';
+  const cancelLabel = lang === 'tr' ? 'İptal' : 'Cancel';
+  const addLabel = lang === 'tr' ? 'Ekle' : 'Add';
+
+  const handleSubmit = () => {
+    if (!title.trim()) return;
+    onAdd({
+      title: title.trim(),
+      description: description.trim() || (lang === 'tr' ? 'Açıklama yok' : 'No description'),
+      priority,
+      category,
+      dueDate: dueDate || (lang === 'tr' ? 'Belirsiz' : 'TBD'),
+      status: 'pending',
+    });
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }}>
+      <div
+        className="relative rounded overflow-hidden"
+        style={{
+          width: 380,
+          background: 'rgba(4,20,36,0.95)',
+          border: `1px solid ${primaryColor}30`,
+          boxShadow: `0 0 40px ${primaryColor}25`,
+        }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: `1px solid ${primaryColor}12` }}>
+          <span className="font-orbitron" style={{ fontSize: 9, color: `${primaryColor}80`, letterSpacing: '0.2em' }}>
+            {newTaskLabel}
+          </span>
+          <button onClick={onClose} style={{ color: `${primaryColor}45`, fontSize: 12 }}>✕</button>
+        </div>
+
+        {/* Body */}
+        <div className="px-4 py-4 flex flex-col gap-3">
+          <div>
+            <label className="font-rajdhani" style={{ fontSize: 10, color: `${primaryColor}55`, display: 'block', marginBottom: 4 }}>
+              {titleLabel}
+            </label>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={titlePlaceholder}
+              className="w-full rounded px-3 py-2 outline-none"
+              style={{
+                background: `${primaryColor}08`,
+                border: `1px solid ${primaryColor}20`,
+                color: 'rgba(224,250,255,0.9)',
+                fontFamily: 'Rajdhani, sans-serif',
+                fontSize: 13,
+              }}
+            />
+          </div>
+
+          <div>
+            <label className="font-rajdhani" style={{ fontSize: 10, color: `${primaryColor}55`, display: 'block', marginBottom: 4 }}>
+              {descLabel}
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={descPlaceholder}
+              rows={3}
+              className="w-full rounded px-3 py-2 outline-none resize-none"
+              style={{
+                background: `${primaryColor}08`,
+                border: `1px solid ${primaryColor}20`,
+                color: 'rgba(224,250,255,0.9)',
+                fontFamily: 'Rajdhani, sans-serif',
+                fontSize: 12,
+              }}
+            />
+          </div>
+
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="font-rajdhani" style={{ fontSize: 10, color: `${primaryColor}55`, display: 'block', marginBottom: 4 }}>
+                {priorityLabel}
+              </label>
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as Priority)}
+                className="w-full rounded px-3 py-2 outline-none"
+                style={{
+                  background: `${primaryColor}08`,
+                  border: `1px solid ${primaryColor}20`,
+                  color: `${primaryColor}CC`,
+                  fontFamily: 'Rajdhani, sans-serif',
+                  fontSize: 12,
+                }}
+              >
+                <option value="low">{lang === 'tr' ? 'Düşük' : 'Low'}</option>
+                <option value="medium">{lang === 'tr' ? 'Orta' : 'Medium'}</option>
+                <option value="high">{lang === 'tr' ? 'Yüksek' : 'High'}</option>
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="font-rajdhani" style={{ fontSize: 10, color: `${primaryColor}55`, display: 'block', marginBottom: 4 }}>
+                {categoryLabel}
+              </label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full rounded px-3 py-2 outline-none"
+                style={{
+                  background: `${primaryColor}08`,
+                  border: `1px solid ${primaryColor}20`,
+                  color: `${primaryColor}CC`,
+                  fontFamily: 'Rajdhani, sans-serif',
+                  fontSize: 12,
+                }}
+              >
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="font-rajdhani" style={{ fontSize: 10, color: `${primaryColor}55`, display: 'block', marginBottom: 4 }}>
+              {dueDateLabel}
+            </label>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="w-full rounded px-3 py-2 outline-none"
+              style={{
+                background: `${primaryColor}08`,
+                border: `1px solid ${primaryColor}20`,
+                color: `${primaryColor}CC`,
+                fontFamily: 'Rajdhani, sans-serif',
+                fontSize: 12,
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end gap-2 px-4 py-3" style={{ borderTop: `1px solid ${primaryColor}12` }}>
+          <button
+            onClick={onClose}
+            className="font-rajdhani px-4 py-2 rounded"
+            style={{ background: `${primaryColor}08`, border: `1px solid ${primaryColor}20`, color: `${primaryColor}70`, fontSize: 12 }}
+          >
+            {cancelLabel}
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="font-rajdhani px-4 py-2 rounded"
+            style={{ background: `${primaryColor}20`, border: `1px solid ${primaryColor}40`, color: `${primaryColor}CC`, fontSize: 12 }}
+          >
+            {addLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function TasksPage() {
+  const { t, language, themeColors } = useJarvis();
+  const [tasks, setTasks] = useState(INITIAL_TASKS);
+  const [filterCategory, setFilterCategory] = useState(language === 'tr' ? 'Tümü' : 'All');
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  const primaryColor = themeColors.primary;
+  const textColor = themeColors.text;
+  const bgSecondary = themeColors.bgSecondary;
+  const categories = language === 'tr' ? CATEGORIES_TR : CATEGORIES_EN;
+
+  const filteredTasks = filterCategory === (language === 'tr' ? 'Tümü' : 'All')
+    ? tasks
+    : tasks.filter((t) => t.category === filterCategory);
+
+  const stats = {
+    total: tasks.length,
+    pending: tasks.filter((t) => t.status === 'pending').length,
+    inProgress: tasks.filter((t) => t.status === 'in_progress').length,
+    completed: tasks.filter((t) => t.status === 'completed').length,
+  };
+
+  const handleToggleStatus = (id: string) => {
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id !== id) return t;
+        const next: TaskStatus = t.status === 'pending'
+          ? 'in_progress'
+          : t.status === 'in_progress'
+          ? 'completed'
+          : 'pending';
+        return { ...t, status: next };
+      })
+    );
+  };
+
+  const handleDelete = (id: string) => {
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  const handleAdd = (taskData: Omit<Task, 'id' | 'createdAt'>) => {
+    const newTask: Task = {
+      ...taskData,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setTasks((prev) => [newTask, ...prev]);
+  };
+
+  return (
+    <div className="flex-1 overflow-hidden flex min-h-0">
+      {/* Main content */}
+      <div className="flex-1 overflow-y-auto" style={{ padding: '24px 28px' }}>
+        {/* Header */}
+        <div className="flex items-end justify-between mb-6">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <div style={{ width: 16, height: 1, background: `${primaryColor}55`, transition: 'background 0.3s ease' }} />
+              <span className="font-orbitron" style={{ fontSize: 8, color: `${primaryColor}55`, letterSpacing: '0.25em', transition: 'color 0.3s ease' }}>
+                // {t('taskManagement')}
+              </span>
+            </div>
+            <h1 className="font-orbitron font-bold" style={{ fontSize: 22, color: textColor, letterSpacing: '0.08em', transition: 'color 0.4s ease' }}>
+              {t('tasksTitle')}
+            </h1>
+          </div>
+
+          {/* Add button */}
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 rounded px-3 py-2 transition-all duration-200"
+            style={{
+              background: `${primaryColor}15`,
+              border: `1px solid ${primaryColor}35`,
+            }}
+          >
+            <Plus size={14} color={primaryColor} />
+            <span className="font-rajdhani" style={{ fontSize: 12, color: `${primaryColor}CC`, transition: 'color 0.3s ease' }}>
+              {t('newTask')}
+            </span>
+          </button>
+        </div>
+
+        {/* Stats */}
+        <div className="flex items-center gap-2 mb-4">
+          {[
+            { label: t('total'), value: stats.total, color: primaryColor },
+            { label: t('waiting'), value: stats.pending, color: '#ffaa00' },
+            { label: t('inProgress'), value: stats.inProgress, color: primaryColor },
+            { label: t('completed'), value: stats.completed, color: '#00ff88' },
+          ].map(({ label, value, color }) => (
+            <div
+              key={label}
+              className="flex items-center gap-1.5 rounded-full px-2.5 py-1"
+              style={{ background: `${color}15`, border: `1px solid ${color}30` }}
+            >
+              <span className="font-orbitron" style={{ fontSize: 11, color }}>{value}</span>
+              <span className="font-rajdhani" style={{ fontSize: 10, color: `${color}CC` }}>{label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Filters */}
+        <div className="flex items-center gap-2 mb-4">
+          <Filter size={12} color={`${primaryColor}55`} />
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setFilterCategory(cat)}
+              className="rounded px-2.5 py-1 transition-all duration-200"
+              style={{
+                background: filterCategory === cat ? `${primaryColor}18` : `${primaryColor}06`,
+                border: `1px solid ${filterCategory === cat ? `${primaryColor}40` : `${primaryColor}15`}`,
+              }}
+            >
+              <span
+                className="font-rajdhani"
+                style={{
+                  fontSize: 10,
+                  color: filterCategory === cat ? `${primaryColor}CC` : `${primaryColor}55`,
+                  transition: 'color 0.2s ease',
+                }}
+              >
+                {cat}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Task list */}
+        <div className="flex flex-col gap-2">
+          {filteredTasks.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Circle size={32} color={`${primaryColor}25`} />
+              <p className="font-rajdhani mt-3" style={{ fontSize: 13, color: `${primaryColor}40`, transition: 'color 0.3s ease' }}>
+                {language === 'tr' ? 'Görev bulunamadı' : 'No tasks found'}
+              </p>
+            </div>
+          ) : (
+            filteredTasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                onToggle={() => handleToggleStatus(task.id)}
+                onDelete={() => handleDelete(task.id)}
+                primaryColor={primaryColor}
+                t={t}
+              />
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Add modal */}
+      {showAddModal && (
+        <AddTaskModal onClose={() => setShowAddModal(false)} onAdd={handleAdd} primaryColor={primaryColor} t={t} lang={language} />
+      )}
+    </div>
+  );
+}
